@@ -1,0 +1,11 @@
+{
+  "name": "esbuild-config-linux-64",
+  "description": "The Linux 64-bit binary for esbuild-config.",
+  "version": "0.1.0",
+  "repository": "https://github.com/bpierre/esbuild-config",
+  "author": "Pierre Bertet <hello@pierre.world>",
+  "license": "MIT",
+  "os": ["linux"],
+  "cpu": ["x64"],
+  "directories": { "bin": "bin" }
+}

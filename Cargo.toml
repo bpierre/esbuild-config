@@ -1,0 +1,22 @@
+[package]
+name = "esbuild-config"
+version = "0.1.0"
+edition = "2018"
+description = "A short description of my package"
+authors = ["Pierre Bertet <hello@pierre.world>"]
+repository = "https://github.com/bpierre/esbuild-config"
+license = "MIT"
+
+[dependencies]
+json = "0.12.4"
+snailquote = "0.3.0"
+
+[[bin]]
+name = "esbuild-config"
+path = "src/main.rs"
+test = false
+
+[lib]
+name = "esbuild_config_lib"
+path = "src/lib/mod.rs"
+doctest = false

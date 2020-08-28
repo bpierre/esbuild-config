@@ -1,0 +1,10 @@
+{
+  "name": "esbuild-config",
+  "description": "Config files for esbuild.",
+  "version": "0.1.0",
+  "repository": "https://github.com/bpierre/esbuild-config",
+  "author": "Pierre Bertet <hello@pierre.world>",
+  "license": "MIT",
+  "bin": "bin/esbuild-config",
+  "scripts": { "postinstall": "node install.js" }
+}

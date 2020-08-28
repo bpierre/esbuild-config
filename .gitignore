@@ -1,0 +1,8 @@
+/target
+**/*.rs.bk
+node_modules/
+yarn.lock
+
+/npm/esbuild-config-linux-64/bin/esbuild-config
+/npm/esbuild-config-darwin-64/bin/esbuild-config
+/npm/esbuild-config-windows-64/esbuild-config.exe
