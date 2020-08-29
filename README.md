@@ -4,7 +4,28 @@ Config files for [esbuild](https://github.com/evanw/esbuild).
 
 ## Why?
 
-esbuild is an incredible tool, that is [exclusively using command line parameters](https://github.com/evanw/esbuild/issues/39) as a configuration syntax. Some people prefer configuration files, so I thought it could be a good idea to provide a solution for this. It is also for me a pretext to use Rust while learning it :)
+esbuild is an incredible tool, that is [using command line parameters](https://github.com/evanw/esbuild/issues/39) as a configuration syntax. This is fine, but some people might prefer using a configuration file.
+
+A solution could be to run esbuild [through its Node.js API](https://github.com/evanw/esbuild/blob/1336fbcf9bcca2f2708f5f575770f13a8440bde3/docs/js-api.md), and use JS as a configuration file:
+
+```js
+const { build } = require('esbuild')
+
+build({
+  entryPoints: ['./index.js'],
+  outfile: './bundle.js',
+  external: ['react', 'react-dom'],
+  loader: { '.js': 'jsx', '.png': 'base64' },
+  minify: true,
+}).catch((error) => {
+  console.error(error)
+  process.exit(1)
+})
+```
+
+This the recommended way to use a configuration file with esbuild, and if it works for you, **you don’t need esbuild-config**: the esbuild module already comes with this JS API.
+
+esbuild-config provides an alternative way to configure esbuild. Instead of using the esbuild API through Node.js, it converts a [configuration file](#syntax) into command line parameters, that can be passed directly to the esbuild binary.
 
 ## Usage
 
@@ -19,24 +40,6 @@ It detects the presence of `esbuild.config.json` in the current directory, or th
 ```console
 esbuild $(esbuild-config ./my-conf.json)
 ```
-
-## Install
-
-The easiest way to install esbuild-config is through npm.
-
-Install it globally using the following command:
-
-```console
-npm install --global esbuild-config
-```
-
-Or add it to your project:
-
-```console
-npm install --save-dev esbuild-config
-```
-
-See below for [alternative installation methods](#other-installation-methods).
 
 ## Syntax
 
@@ -64,7 +67,25 @@ Output:
 
 Notice how the entry, `./index.js`, has been moved to the end. esbuild-config also takes care of escaping the parameters as needed (e.g. by adding quotes).
 
-## Other installation methods
+## Install
+
+### npm
+
+The easiest way to install esbuild-config is through npm.
+
+Install it globally using the following command:
+
+```console
+npm install --global esbuild-config
+```
+
+Or add it to your project:
+
+```console
+npm install --save-dev esbuild-config
+```
+
+See below for [alternative installation methods](#other-installation-methods).
 
 ### Binaries
 
