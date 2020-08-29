@@ -22,45 +22,21 @@ esbuild $(esbuild-config ./my-conf.json)
 
 ## Install
 
-You have different options to install esbuild-config.
+The easiest way to install esbuild-config is through npm.
 
-### npm
-
-Install globally with npm using the following command:
+Install it globally using the following command:
 
 ```console
 npm install --global esbuild-config
 ```
 
-You can also add it to your project:
+Or add it to your project:
 
 ```console
 npm install --save-dev esbuild-config
 ```
 
-### Cargo
-
-Install it with [Cargo](https://github.com/rust-lang/cargo) using the following command:
-
-```console
-cargo install esbuild-config
-```
-
-### Binaries
-
-You can download the precompiled binaries [from the release page](https://github.com/bpierre/esbuild-config/releases).
-
-### From source
-
-To clone the repository and build esbuild-config, run these commands ([after having installed Rust](https://www.rust-lang.org/tools/install)):
-
-```console
-git clone git@github.com:bpierre/esbuild-config.git
-cd esbuild-config
-cargo build --release
-```
-
-The compiled binary is at `target/release/esbuild-config`.
+See below for [alternative installation methods](#other-installation-methods).
 
 ## Syntax
 
@@ -87,6 +63,32 @@ Output:
 ```
 
 Notice how the entry, `./index.js`, has been moved to the end. esbuild-config also takes care of escaping the parameters as needed (e.g. by adding quotes).
+
+## Other installation methods
+
+### Binaries
+
+You can download the precompiled binaries [from the release page](https://github.com/bpierre/esbuild-config/releases).
+
+### Cargo
+
+Install it with [Cargo](https://github.com/rust-lang/cargo) using the following command:
+
+```console
+cargo install esbuild-config
+```
+
+### From source
+
+To clone the repository and build esbuild-config, run these commands ([after having installed Rust](https://www.rust-lang.org/tools/install)):
+
+```console
+git clone git@github.com:bpierre/esbuild-config.git
+cd esbuild-config
+cargo build --release
+```
+
+The compiled binary is at `target/release/esbuild-config`.
 
 ## Contribute
 
