@@ -6,26 +6,29 @@ Config files for [esbuild](https://github.com/evanw/esbuild).
 
 esbuild is an incredible tool, that is [using command line parameters](https://github.com/evanw/esbuild/issues/39) as a configuration syntax. This is fine, but some people might prefer using a configuration file.
 
-A solution could be to run esbuild [through its Node.js API](https://github.com/evanw/esbuild/blob/1336fbcf9bcca2f2708f5f575770f13a8440bde3/docs/js-api.md), and use JS as a configuration file:
+esbuild-config can transform a `esbuild.config.json` configuration file like this one:
 
-```js
-const { build } = require('esbuild')
-
-build({
-  entryPoints: ['./index.js'],
-  outfile: './bundle.js',
-  external: ['react', 'react-dom'],
-  loader: { '.js': 'jsx', '.png': 'base64' },
-  minify: true,
-}).catch((error) => {
-  console.error(error)
-  process.exit(1)
-})
+```json
+{
+  "entry": "./index.js",
+  "outfile": "./bundle.js",
+  "external": ["react", "react-dom"],
+  "loader": { ".js": "jsx", ".png": "base64" },
+  "minify": true
+}
 ```
 
-This the recommended way to use a configuration file with esbuild, and if it works for you, **you don’t need esbuild-config**: the esbuild module already comes with this JS API.
+Into a set of parameters for `esbuild`:
 
-esbuild-config provides an alternative way to configure esbuild. Instead of using the esbuild API through Node.js, it converts a [configuration file](#syntax) into command line parameters, that can be passed directly to the esbuild binary.
+```console
+--outfile=./bundle.js --minify --external:react --external:react-dom --loader:.js=jsx --loader:.png=base64 ./index.js
+```
+
+Which means that `esbuild` can read a static configuration by running it this way:
+
+```console
+esbuild $(esbuild-config)
+```
 
 ## Usage
 
@@ -125,6 +128,35 @@ cargo test
 # Generate the code coverage report (install cargo-tarpaulin first)
 cargo tarpaulin -o Html
 ```
+
+## FAQ
+
+### Doesn’t esbuild already support config files?
+
+The recommended way to use a configuration file with esbuild is [through its Node.js API](https://github.com/evanw/esbuild/blob/1336fbcf9bcca2f2708f5f575770f13a8440bde3/docs/js-api.md), using a Node program as a configuration file:
+
+```js
+const { build } = require('esbuild')
+
+build({
+  entryPoints: ['./index.js'],
+  outfile: './bundle.js',
+  external: ['react', 'react-dom'],
+  loader: { '.js': 'jsx', '.png': 'base64' },
+  minify: true,
+}).catch((error) => {
+  console.error(error)
+  process.exit(1)
+})
+```
+
+If it works for you, you don’t need esbuild-config: the esbuild module already comes bundled with this JS API. esbuild-config provides an alternative way to configure esbuild. Instead of using the esbuild API through Node.js, it converts a [configuration file](#syntax) into command line parameters, that can be passed directly to the esbuild binary.
+
+There are several reasons why you might want to use esbuild-config:
+
+- You prefer using JSON as a configuration language.
+- You prefer to have as much configuration as possible in the package.json.
+- You prefer to not launch Node at all in the process.
 
 ## Special thanks
 
