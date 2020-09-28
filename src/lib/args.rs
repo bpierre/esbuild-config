@@ -2,8 +2,10 @@ use super::errors;
 use json;
 use snailquote;
 
-// Get the esbuild arguments from the data structure
-pub fn args_from_json_value(json: json::JsonValue) -> Result<String, errors::ConfigParseError> {
+// Get the esbuild arguments from the esbuild.config.json data structure
+pub fn args_from_config_json_value(
+    json: json::JsonValue,
+) -> Result<String, errors::ConfigParseError> {
     let mut args: Vec<String> = vec![];
     let mut entries: Vec<String> = vec![];
     let mut options: Vec<String> = vec![];
@@ -31,6 +33,18 @@ pub fn args_from_json_value(json: json::JsonValue) -> Result<String, errors::Con
     args.append(&mut options);
     args.append(&mut entries);
     Ok(args.join(" "))
+}
+
+// Get the esbuild arguments from the data structure of the package.json esbuild field
+pub fn args_from_package_json_value(
+    json: json::JsonValue,
+) -> Result<String, errors::ConfigParseError> {
+    if !json.is_object() {
+        return Err(errors::ConfigParseError::JsonError(json::Error::WrongType(
+            String::from("The package.json seems malformed."),
+        )));
+    }
+    args_from_config_json_value(json["esbuild"].clone())
 }
 
 // Get the entries in the config file
@@ -156,7 +170,7 @@ mod tests {
         )
         .unwrap();
         assert_eq!(
-            args_from_json_value(value).unwrap(),
+            args_from_config_json_value(value).unwrap(),
             "--a --b=abc --c:def --c:ghi --d:e=jkl --d:f=mno index.js"
         );
     }

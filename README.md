@@ -35,7 +35,9 @@ The esbuild-config command outputs a list of parameters based on a `esbuild.conf
 esbuild $(esbuild-config)
 ```
 
-It detects the presence of `esbuild.config.json` in the current directory, or the project root (using the presence of a `package.json` file). Any file can also get provided as a parameter:
+It detects the presence of `esbuild.config.json` in the current directory or the project root (using the presence of a `package.json` file). The same configuration format can also get defined in the `package.json` file, using the `esbuild` field.json` file.
+
+A specific file path can also get passed as a parameter:
 
 ```console
 esbuild $(esbuild-config ./my-conf.json)
@@ -120,7 +122,7 @@ cargo run
 # Run the tests
 cargo test
 
-# Generate the code coverage report
+# Generate the code coverage report (install cargo-tarpaulin first)
 cargo tarpaulin -o Html
 ```
 
