@@ -1,7 +1,7 @@
 {
   "name": "esbuild-config-darwin-64",
   "description": "The macOS 64-bit binary for esbuild-config.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "repository": "https://github.com/bpierre/esbuild-config",
   "author": "Pierre Bertet <hello@pierre.world>",
   "license": "MIT",
