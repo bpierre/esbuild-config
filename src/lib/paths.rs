@@ -1,15 +1,18 @@
 use super::errors;
+use super::ConfigFileType;
 use std::{env, io, path::PathBuf};
 
 const CONFIG_FILE_NAME: &str = "esbuild.config.json";
 
 // Return the path of the config file, based on the passed string or by detecting it.
-pub fn config_path(path: Option<&String>) -> Result<PathBuf, errors::ConfigPathError> {
+pub fn config_path(
+    path: Option<&String>,
+) -> Result<(PathBuf, ConfigFileType), errors::ConfigPathError> {
     match path {
         Some(path) => {
             let esbuild_json = PathBuf::from(path);
             if esbuild_json.exists() {
-                Ok(esbuild_json)
+                Ok((esbuild_json, ConfigFileType::ConfigJson))
             } else {
                 Err(errors::ConfigPathError::Io(io::Error::new(
                     io::ErrorKind::NotFound,
@@ -38,18 +41,18 @@ pub fn pkg_root_path() -> Result<PathBuf, errors::ConfigPathError> {
 }
 
 // Detect the path of the config file from the current directory.
-pub fn detect_config_path() -> Result<PathBuf, errors::ConfigPathError> {
+pub fn detect_config_path() -> Result<(PathBuf, ConfigFileType), errors::ConfigPathError> {
     let cwd = env::current_dir().map_err(errors::ConfigPathError::Io)?;
     let local_esbuild_json = cwd.join(CONFIG_FILE_NAME);
 
     // Local esbuild.config.json
     if local_esbuild_json.exists() {
-        return Ok(local_esbuild_json);
+        return Ok((local_esbuild_json, ConfigFileType::ConfigJson));
     }
 
     // Project root esbuild.config.json
-    let local_esbuild_json = match pkg_root_path() {
-        Ok(pkg_root) => pkg_root.join(CONFIG_FILE_NAME),
+    let pkg_root = match pkg_root_path() {
+        Ok(pkg_root) => pkg_root,
         Err(_) => {
             return Err(errors::ConfigPathError::Io(io::Error::new(
                 io::ErrorKind::NotFound,
@@ -63,17 +66,12 @@ pub fn detect_config_path() -> Result<PathBuf, errors::ConfigPathError> {
         }
     };
 
-    if local_esbuild_json.exists() {
-        Ok(local_esbuild_json)
+    let esbuild_json = pkg_root.join(CONFIG_FILE_NAME);
+    let package_json = pkg_root.join("package.json");
+
+    if esbuild_json.exists() {
+        Ok((esbuild_json, ConfigFileType::ConfigJson))
     } else {
-        Err(errors::ConfigPathError::Io(io::Error::new(
-            io::ErrorKind::NotFound,
-            [
-                "No ",
-                CONFIG_FILE_NAME,
-                " found in the current directory nor in the project root.",
-            ]
-            .concat(),
-        )))
+        Ok((package_json, ConfigFileType::PackageJson))
     }
 }

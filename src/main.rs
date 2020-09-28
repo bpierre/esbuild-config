@@ -8,7 +8,7 @@ fn main() {
         Ok(value) => println!("{}", value),
         Err(err) => match err {
             EsbuildConfigError::ConfigParseError => {
-                eprintln!("The configuration file is invalid.");
+                eprintln!("The configuration file or package.json is invalid.");
             }
             EsbuildConfigError::ConfigPathError => {
                 eprintln!("Couldn’t find or open the esbuild configuration file.");
