@@ -1,0 +1,91 @@
+#!./node_modules/zx/build/cli.js
+
+const npmModulesPath = path.resolve(`${__dirname}/../npm`);
+
+const platforms = [
+  {
+    zip: "Linux.zip",
+    tar: "esbuild-config-linux-64.tar.gz",
+    npm: {
+      "esbuild-config-linux-64": ["esbuild-config", "bin/esbuild-config"],
+      "esbuild-config-linux-arm64": ["esbuild-config-arm64", "bin/esbuild-config"],
+    },
+  },
+  {
+    zip: "macOS.zip",
+    tar: "esbuild-config-macos-64.tar.gz",
+    npm: {
+      "esbuild-config-darwin-64": ["esbuild-config", "bin/esbuild-config"],
+    },
+  },
+  {
+    zip: "Windows.zip",
+    tar: "esbuild-config-windows-x86_64.tar.gz",
+    npm: {
+      "esbuild-config-windows-64": ["esbuild-config.exe", "esbuild-config.exe"],
+    },
+  },
+];
+
+const msg = msg => console.log(`\n${msg}\n`);
+
+const [version] = argv._;
+
+if (!version) {
+  msg(`Please specify a version.`);
+  process.exit(1);
+}
+
+for (const platform of platforms) {
+  if (!fs.existsSync(`${__dirname}/${platform.zip}`)) {
+    msg(`${zip} is missing: please drop it in the npm-release directory.`);
+    process.exit(1);
+  }
+}
+
+msg("Prepare extraction…");
+await $`rm -rf ${__dirname}/tmp`;
+await $`mkdir -p ${__dirname}/tmp`;
+await Promise.all(platforms.map(platform => $`cp ${__dirname}/${platform.zip} ${__dirname}/tmp/`));
+cd(`${__dirname}/tmp`);
+
+msg("Extract zip archives…");
+await Promise.all(platforms.map(platform => $`unzip -q ${platform.zip}`));
+
+msg("Extract tar archives…");
+await Promise.all(platforms.map(platform => $`tar xzf ${platform.tar} --one-top-level`));
+
+msg("Copy binaries to their respective npm modules…");
+await Promise.all(
+  platforms.flatMap(platform =>
+    Object.entries(platform.npm).map(([moduleDir, [sourceBinary, destBinary]]) => {
+      const sourcePath = `${path.basename(platform.tar, ".tar.gz")}/${sourceBinary}`;
+      const destPath = `${npmModulesPath}/${moduleDir}/${destBinary}`;
+      return $`cp ${sourcePath} ${destPath}`;
+    })
+  ),
+);
+
+// Run a command in every npm package (except the main one)
+const npmCmd = (command) =>
+  Promise.all(
+    platforms.flatMap(platform =>
+      Object.keys(platform.npm).map((moduleDir) => {
+        cd(`${npmModulesPath}/${moduleDir}`);
+        return command();
+      })
+    ),
+  );
+
+msg("Update npm versions");
+await npmCmd(() => $`npm version ${version} --allow-same-version`);
+
+const publishAnswer = await question("\nPublish packages on npm? [Y/n] ");
+const publish = ["", "y"].includes(publishAnswer.trim().toLowerCase());
+
+if (publish) {
+  msg("Publish npm packages");
+  await npmCmd(() => $`npm publish`);
+}
+
+msg(publish ? "Done. You can now publish npm/esbuild-config manually." : "Done.");
