@@ -57,17 +57,25 @@ jobs:
           lipo -create ./target/x86_64-apple-darwin/release/${{ env.RELEASE_BIN }} ./target/aarch64-apple-darwin/release/${{ env.RELEASE_BIN }} -output ./target/release/${{ env.RELEASE_BIN }}
         if: matrix.os == 'macos-latest'
 
+      - name: Add Rust target (Linux x86_64)
+        run: rustup target add x86_64-unknown-linux-gnu
+        if: matrix.os == 'ubuntu-latest'
+
       - name: Add Rust target (Linux arm64)
         run: rustup target add aarch64-unknown-linux-gnu
         if: matrix.os == 'ubuntu-latest'
 
       - name: Build (Linux x86_64)
-        run: cargo build --verbose --release
+        run: |
+          cargo build --verbose --release --target=x86_64-unknown-linux-gnu
+          mkdir -p ./target/release
+          mv ./target/x86_64-unknown-linux-gnu/release/${{ env.RELEASE_BIN }} ./target/release/${{ env.RELEASE_BIN }}
         if: matrix.os == 'ubuntu-latest'
 
       - name: Build (Linux arm64)
         run: |
           cargo build --verbose --release --target=aarch64-unknown-linux-gnu
+          mkdir -p ./target/release
           mv ./target/aarch64-unknown-linux-gnu/release/${{ env.RELEASE_BIN }} ./target/release/${{ env.RELEASE_BIN }}-arm64
         if: matrix.os == 'ubuntu-latest'
 
