@@ -55,6 +55,7 @@ jobs:
         run: |
           mkdir -p ./target/release
           lipo -create ./target/x86_64-apple-darwin/release/${{ env.RELEASE_BIN }} ./target/aarch64-apple-darwin/release/${{ env.RELEASE_BIN }} -output ./target/release/${{ env.RELEASE_BIN }}
+        if: matrix.os == 'macos-latest'
 
       - name: Add Rust target (Linux arm64)
         run: rustup target add aarch64-unknown-linux-gnu
