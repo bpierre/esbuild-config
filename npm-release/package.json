@@ -1,0 +1,7 @@
+{
+  "name": "npm-release",
+  "private": true,
+  "dependencies": {
+    "zx": "^7.0.8"
+  }
+}

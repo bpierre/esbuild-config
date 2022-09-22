@@ -33,34 +33,75 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install Rust (rustup)
-        run: rustup update ${{ matrix.rust }} --no-self-update && rustup default ${{ matrix.rust }}
-        shell: bash
+      - name: Install Rust via rustup
+        run: |
+          rustup update ${{ matrix.rust }} --no-self-update
+          rustup default ${{ matrix.rust }}
 
-      - name: Build
+      - name: Install build dependencies (macOS)
+        run: |
+          rustup target add x86_64-apple-darwin
+          rustup target add aarch64-apple-darwin
+        if: matrix.os == 'macos-latest'
+
+      - name: Build (macOS x86_64)
+        run: SDKROOT=$(xcrun -sdk macosx --show-sdk-path) cargo build --target=x86_64-apple-darwin --verbose --release
+        if: matrix.os == 'macos-latest'
+
+      - name: Build (macOS arm64)
+        run: SDKROOT=$(xcrun -sdk macosx --show-sdk-path) cargo build --target=aarch64-apple-darwin --verbose --release
+        if: matrix.os == 'macos-latest'
+
+      - name: Universal binary (macOS)
+        run: |
+          mkdir -p ./target/release
+          lipo -create ./target/x86_64-apple-darwin/release/${{ env.RELEASE_BIN }} ./target/aarch64-apple-darwin/release/${{ env.RELEASE_BIN }} -output ./target/release/${{ env.RELEASE_BIN }}
+        if: matrix.os == 'macos-latest'
+
+      - name: Install build dependencies (Linux)
+        run: |
+          rustup target add x86_64-unknown-linux-gnu
+          rustup target add aarch64-unknown-linux-gnu
+          sudo apt-get install gcc-aarch64-linux-gnu
+        if: matrix.os == 'ubuntu-latest'
+
+      - name: Build (Linux x86_64)
+        run: |
+          cargo build --verbose --release --target=x86_64-unknown-linux-gnu
+          mkdir -p ./target/release
+          mv ./target/x86_64-unknown-linux-gnu/release/${{ env.RELEASE_BIN }} ./target/release/${{ env.RELEASE_BIN }}
+        if: matrix.os == 'ubuntu-latest'
+
+      - name: Build (Linux arm64)
+        run: |
+          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc CXX_aarch64_unknown_linux_gnu=aarch64-linux-gnu-g++ cargo build --verbose --release --target=aarch64-unknown-linux-gnu
+          mkdir -p ./target/release
+          mv ./target/aarch64-unknown-linux-gnu/release/${{ env.RELEASE_BIN }} ./target/release/${{ env.RELEASE_BIN }}-arm64
+        if: matrix.os == 'ubuntu-latest'
+
+      - name: build (Windows)
         run: cargo build --verbose --release
+        if: matrix.os == 'windows-latest'
 
       - name: Create artifact directory
         run: mkdir artifacts
 
-      - name: Create archive for Linux
-        run: 7z a -ttar -so -an ./target/release/${{ env.RELEASE_BIN }} ${{ env.RELEASE_ADDS }} | 7z a -si ./artifacts/${{ env.RELEASE_BIN }}-linux-x86_64.tar.gz
+      - name: Create archive (macOS)
+        run: |
+          # 7Zip not available on MacOS, install p7zip via homebrew.
+          brew install p7zip
+          7z a -ttar -so -an ./target/release/${{ env.RELEASE_BIN }} ${{ env.RELEASE_ADDS }} | 7z a -si ./artifacts/${{ env.RELEASE_BIN }}-macos-64.tar.gz
+        if: matrix.os == 'macos-latest'
+
+      - name: Create archive (Linux)
+        run: 7z a -ttar -so -an ./target/release/${{ env.RELEASE_BIN }} ./target/release/${{ env.RELEASE_BIN }}-arm64 ${{ env.RELEASE_ADDS }} | 7z a -si ./artifacts/${{ env.RELEASE_BIN }}-linux-64.tar.gz
         if: matrix.os == 'ubuntu-latest'
 
-      - name: Create archive for Windows
+      - name: Create archive (Windows)
         run: |
           7z a ./tmp/${{ env.RELEASE_BIN }}-windows-x86_64.tar ./target/release/${{ env.RELEASE_BIN }}.exe ${{ env.RELEASE_ADDS }}
           7z a ./artifacts/${{ env.RELEASE_BIN }}-windows-x86_64.tar.gz ./tmp/${{ env.RELEASE_BIN }}-windows-x86_64.tar
         if: matrix.os == 'windows-latest'
-
-      - name: Install p7zip
-        # 7Zip not available on MacOS, install p7zip via homebrew.
-        run: brew install p7zip
-        if: matrix.os == 'macos-latest'
-
-      - name: Create archive for MacOS
-        run: 7z a -ttar -so -an ./target/release/${{ env.RELEASE_BIN }} ${{ env.RELEASE_ADDS }} | 7z a -si ./artifacts/${{ env.RELEASE_BIN }}-macos-x86_64.tar.gz
-        if: matrix.os == 'macos-latest'
 
       # This will double-zip
       # See - https://github.com/actions/upload-artifact/issues/39

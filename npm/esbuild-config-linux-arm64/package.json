@@ -1,11 +1,11 @@
 {
-  "name": "esbuild-config-darwin-64",
-  "description": "The macOS universal 64-bit binary for esbuild-config.",
+  "name": "esbuild-config-linux-arm64",
+  "description": "The Linux ARM 64-bit binary for esbuild-config.",
   "version": "0.2.0",
   "repository": "https://github.com/bpierre/esbuild-config",
   "author": "Pierre Bertet <hello@pierre.world>",
   "license": "MIT",
-  "os": ["darwin"],
-  "cpu": ["x64", "arm64"],
+  "os": ["linux"],
+  "cpu": ["arm64"],
   "directories": { "bin": "bin" }
 }
