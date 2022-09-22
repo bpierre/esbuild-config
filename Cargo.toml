@@ -1,9 +1,9 @@
 [package]
 name = "esbuild-config"
-version = "0.2.0"
+version = "1.0.0"
 edition = "2018"
 description = "A short description of my package"
-authors = ["Pierre Bertet <hello@pierre.world>"]
+authors = ["Pierre Bertet <hi@bpier.re>"]
 repository = "https://github.com/bpierre/esbuild-config"
 license = "MIT"
 
