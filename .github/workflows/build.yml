@@ -35,12 +35,10 @@ jobs:
           rustup update ${{ matrix.rust }} --no-self-update
           rustup default ${{ matrix.rust }}
 
-      - name: Add Rust target (macOS x86_64)
-        run: rustup target add x86_64-apple-darwin
-        if: matrix.os == 'macos-latest'
-
-      - name: Add Rust target (macOS arm64)
-        run: rustup target add aarch64-apple-darwin
+      - name: Install build dependencies (macOS)
+        run: |
+          rustup target add x86_64-apple-darwin
+          rustup target add aarch64-apple-darwin
         if: matrix.os == 'macos-latest'
 
       - name: Build (macOS x86_64)
@@ -57,12 +55,11 @@ jobs:
           lipo -create ./target/x86_64-apple-darwin/release/${{ env.RELEASE_BIN }} ./target/aarch64-apple-darwin/release/${{ env.RELEASE_BIN }} -output ./target/release/${{ env.RELEASE_BIN }}
         if: matrix.os == 'macos-latest'
 
-      - name: Add Rust target (Linux x86_64)
-        run: rustup target add x86_64-unknown-linux-gnu
-        if: matrix.os == 'ubuntu-latest'
-
-      - name: Add Rust target (Linux arm64)
-        run: rustup target add aarch64-unknown-linux-gnu
+      - name: Install build dependencies (Linux)
+        run: |
+          rustup target add x86_64-unknown-linux-gnu
+          rustup target add aarch64-unknown-linux-gnu
+          apt-get install gcc-aarch64-linux-gnu
         if: matrix.os == 'ubuntu-latest'
 
       - name: Build (Linux x86_64)
@@ -74,7 +71,7 @@ jobs:
 
       - name: Build (Linux arm64)
         run: |
-          RUSTFLAGS="-C linker=aarch64-linux-gnu-gcc" cargo build --verbose --release --target=aarch64-unknown-linux-gnu
+          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc CXX_aarch64_unknown_linux_gnu=aarch64-linux-gnu-g++ cargo build --verbose --release --target=aarch64-unknown-linux-gnu
           mkdir -p ./target/release
           mv ./target/aarch64-unknown-linux-gnu/release/${{ env.RELEASE_BIN }} ./target/release/${{ env.RELEASE_BIN }}-arm64
         if: matrix.os == 'ubuntu-latest'
