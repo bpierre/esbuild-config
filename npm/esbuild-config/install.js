@@ -233,6 +233,7 @@ const knownWindowsPackages = {
 const knownUnixlikePackages = {
   'darwin arm64 LE': 'esbuild-config-darwin-64',
   'darwin x64 LE': 'esbuild-config-darwin-64',
+  'linux arm64 LE': 'esbuild-config-linux-arm64',
   'linux x64 LE': 'esbuild-config-linux-64',
 }
 
