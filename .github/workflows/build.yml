@@ -3,10 +3,7 @@
 
 name: Create release
 
-on:
-  push:
-    tags:
-      - 'v*'
+on: push
 
 env:
   RELEASE_BIN: esbuild-config
