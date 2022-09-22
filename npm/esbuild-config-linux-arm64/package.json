@@ -1,7 +1,7 @@
 {
   "name": "esbuild-config-linux-arm64",
   "description": "The Linux ARM 64-bit binary for esbuild-config.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "repository": "https://github.com/bpierre/esbuild-config",
   "author": "Pierre Bertet <hi@bpier.re>",
   "license": "MIT",
