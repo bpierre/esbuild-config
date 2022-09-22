@@ -31,22 +31,48 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Install Rust via rustup
-        run: rustup update ${{ matrix.rust }} --no-self-update && rustup default ${{ matrix.rust }}
-        shell: bash
-
-      - name: build (macOS)
         run: |
-          rustup target add x86_64-apple-darwin
-          rustup target add aarch64-apple-darwin
-          SDKROOT=$(xcrun -sdk macosx --show-sdk-path) cargo build --target=x86_64-apple-darwin --verbose --release
-          SDKROOT=$(xcrun -sdk macosx --show-sdk-path) cargo build --target=aarch64-apple-darwin --verbose --release
-          mkdir -p ./target/release
-          lipo -create ./target/x86_64-apple-darwin/release/${{ env.RELEASE_BIN }} ./target/aarch64-apple-darwin/release/${{ env.RELEASE_BIN }} -output ./target/release/${{ env.RELEASE_BIN }}
+          rustup update ${{ matrix.rust }} --no-self-update
+          rustup default ${{ matrix.rust }}
+
+      - name: Add Rust target (macOS x86_64)
+        run: rustup target add x86_64-apple-darwin
         if: matrix.os == 'macos-latest'
 
-      - name: build (Linux / Windows)
+      - name: Add Rust target (macOS arm64)
+        run: rustup target add aarch64-apple-darwin
+        if: matrix.os == 'macos-latest'
+
+      - name: Build (macOS x86_64)
+        run: SDKROOT=$(xcrun -sdk macosx --show-sdk-path) cargo build --target=x86_64-apple-darwin --verbose --release
+        if: matrix.os == 'macos-latest'
+
+      - name: Build (macOS arm64)
+        run: SDKROOT=$(xcrun -sdk macosx --show-sdk-path) cargo build --target=aarch64-apple-darwin --verbose --release
+        if: matrix.os == 'macos-latest'
+
+      - name: Universal binary (macOS)
+        run: |
+          mkdir -p ./target/release
+          lipo -create ./target/x86_64-apple-darwin/release/${{ env.RELEASE_BIN }} ./target/aarch64-apple-darwin/release/${{ env.RELEASE_BIN }} -output ./target/release/${{ env.RELEASE_BIN }}
+
+      - name: Add Rust target (Linux arm64)
+        run: rustup target add aarch64-unknown-linux-gnu
+        if: matrix.os == 'ubuntu-latest'
+
+      - name: Build (Linux x86_64)
         run: cargo build --verbose --release
-        if: matrix.os != 'macos-latest'
+        if: matrix.os == 'ubuntu-latest'
+
+      - name: Build (Linux arm64)
+        run: |
+          cargo build --verbose --release --target=aarch64-unknown-linux-gnu
+          mv ./target/aarch64-unknown-linux-gnu/release/${{ env.RELEASE_BIN }} ./target/release/${{ env.RELEASE_BIN }}-arm64
+        if: matrix.os == 'ubuntu-latest'
+
+      - name: build (Windows)
+        run: cargo build --verbose --release
+        if: matrix.os == 'windows-latest'
 
       - name: Create artifact directory
         run: mkdir artifacts
@@ -55,11 +81,11 @@ jobs:
         run: |
           # 7Zip not available on MacOS, install p7zip via homebrew.
           brew install p7zip
-          7z a -ttar -so -an ./target/release/${{ env.RELEASE_BIN }} ${{ env.RELEASE_ADDS }} | 7z a -si ./artifacts/${{ env.RELEASE_BIN }}-macos-x86_64.tar.gz
+          7z a -ttar -so -an ./target/release/${{ env.RELEASE_BIN }} ${{ env.RELEASE_ADDS }} | 7z a -si ./artifacts/${{ env.RELEASE_BIN }}-macos-64.tar.gz
         if: matrix.os == 'macos-latest'
 
       - name: Create archive (Linux)
-        run: 7z a -ttar -so -an ./target/release/${{ env.RELEASE_BIN }} ${{ env.RELEASE_ADDS }} | 7z a -si ./artifacts/${{ env.RELEASE_BIN }}-linux-x86_64.tar.gz
+        run: 7z a -ttar -so -an ./target/release/${{ env.RELEASE_BIN }} ./target/release/${{ env.RELEASE_BIN }}-arm64 ${{ env.RELEASE_ADDS }} | 7z a -si ./artifacts/${{ env.RELEASE_BIN }}-linux-64.tar.gz
         if: matrix.os == 'ubuntu-latest'
 
       - name: Create archive (Windows)
