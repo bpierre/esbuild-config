@@ -30,11 +30,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install Rust (rustup)
+      - name: Install Rust via rustup
         run: rustup update ${{ matrix.rust }} --no-self-update && rustup default ${{ matrix.rust }}
         shell: bash
 
-      - name: macOS build
+      - name: build (macOS)
         run: |
           rustup target add x86_64-apple-darwin
           rustup target add aarch64-apple-darwin
@@ -44,31 +44,29 @@ jobs:
           lipo -create ./target/x86_64-apple-darwin/release/${{ env.RELEASE_BIN }} ./target/aarch64-apple-darwin/release/${{ env.RELEASE_BIN }} -output ./target/release/${{ env.RELEASE_BIN }}
         if: matrix.os == 'macos-latest'
 
-      - name: Linux + Windows build
+      - name: build (Linux / Windows)
         run: cargo build --verbose --release
         if: matrix.os != 'macos-latest'
 
       - name: Create artifact directory
         run: mkdir artifacts
 
-      - name: Create archive for Linux
+      - name: Create archive (macOS)
+        run: |
+          # 7Zip not available on MacOS, install p7zip via homebrew.
+          brew install p7zip
+          7z a -ttar -so -an ./target/release/${{ env.RELEASE_BIN }} ${{ env.RELEASE_ADDS }} | 7z a -si ./artifacts/${{ env.RELEASE_BIN }}-macos-x86_64.tar.gz
+        if: matrix.os == 'macos-latest'
+
+      - name: Create archive (Linux)
         run: 7z a -ttar -so -an ./target/release/${{ env.RELEASE_BIN }} ${{ env.RELEASE_ADDS }} | 7z a -si ./artifacts/${{ env.RELEASE_BIN }}-linux-x86_64.tar.gz
         if: matrix.os == 'ubuntu-latest'
 
-      - name: Create archive for Windows
+      - name: Create archive (Windows)
         run: |
           7z a ./tmp/${{ env.RELEASE_BIN }}-windows-x86_64.tar ./target/release/${{ env.RELEASE_BIN }}.exe ${{ env.RELEASE_ADDS }}
           7z a ./artifacts/${{ env.RELEASE_BIN }}-windows-x86_64.tar.gz ./tmp/${{ env.RELEASE_BIN }}-windows-x86_64.tar
         if: matrix.os == 'windows-latest'
-
-      - name: Install p7zip
-        # 7Zip not available on MacOS, install p7zip via homebrew.
-        run: brew install p7zip
-        if: matrix.os == 'macos-latest'
-
-      - name: Create archive for MacOS
-        run: 7z a -ttar -so -an ./target/release/${{ env.RELEASE_BIN }} ${{ env.RELEASE_ADDS }} | 7z a -si ./artifacts/${{ env.RELEASE_BIN }}-macos-x86_64.tar.gz
-        if: matrix.os == 'macos-latest'
 
       # This will double-zip
       # See - https://github.com/actions/upload-artifact/issues/39
